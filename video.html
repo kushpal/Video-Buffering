@@ -1,0 +1,175 @@
+<?php
+session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+function CallAPI($method, $url, $data)
+{
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+if ($method == "POST"){
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
+}
+else if ($method == "GET")
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$result  = curl_exec($ch);
+curl_close($ch);
+
+return $result;
+}
+
+?>
+<!DOCTYPE html>
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="#">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+
+<body>
+  <div class="container">
+
+
+
+
+
+<hr><video id="myVideo" width="440" height="440" controls><source  type="video/mp4"></video>';
+
+</div>
+
+<script>
+
+$('#myVideo').attr('src', "").fadeIn(300);
+
+var vid = document.getElementById("myVideo");
+
+function getCurTime() { 
+  return vid.currentTime;
+} 
+
+function setCurTime(time) { 
+  vid.currentTime=time;
+}
+
+function getDuration(){
+  return vid.duration;
+}
+
+function PlayVideo(){
+  vid.play();
+}
+
+function PauseVideo(){
+  vid.pause();
+}
+
+
+var imageAddr = "static/Product/iphone1.jpeg"; 
+var downloadSize = 16913; //bytes
+var speed =5.0;
+var path="";
+var flag=0;
+var timesRun=0;
+function fun(value) {
+  speed=value;
+}
+
+function MeasureConnectionSpeed() {
+    var startTime, endTime;
+    var download = new Image();
+    download.onload = function () {
+        endTime = (new Date()).getTime();
+        showResults();
+    }
+    
+    
+    
+    startTime = (new Date()).getTime();
+    var cacheBuster = "?nnn=" + startTime;
+    download.src = imageAddr + cacheBuster;
+    
+     function showResults() {
+        var duration = (endTime - startTime) / 1000;
+        var bitsLoaded = downloadSize * 8;
+        var speedBps = (bitsLoaded / duration).toFixed(2);
+        var speedKbps = (speedBps / 1024).toFixed(2);
+        var speedMbps = (speedKbps / 1024).toFixed(2); 
+        fun(speedMbps);
+
+}
+
+}
+var pauseflag = true; 
+var speedfluctuate =false;
+var speedflag=5;
+var interval=setInterval(function() {
+  
+MeasureConnectionSpeed();
+
+if (speed>=5)
+{
+	if(speedflag!=0)
+	{
+		callAjax();
+	}
+	speedflag=0;
+
+
+}
+else if(speed<5 && speed>=3 )
+{
+	if(speedflag!=1)
+	{
+		callAjax();
+	}
+	speedflag=1;
+
+
+}
+else
+{
+	if(speedflag!=2)
+	{
+		callAjax();
+		
+	}
+	speedflag=2;
+}
+
+console.log("Speed(Mbps) in 2secs interval",speed);
+}, 1000 * 2);
+
+function callAjax(){
+	
+if (!vid.paused || pauseflag==true)
+$.ajax({
+        type: "POST",
+        url: "http://127.0.0.1:8000/Product/video/",
+        dataType: 'json',
+        data:JSON.stringify({"video_name":"makhana", "Bandwidth":parseFloat(speed),"StartTime":getCurTime()}),
+        success: function(response){
+
+          $('#myVideo').attr('src', response['Resolution']).fadeIn(300);
+            setCurTime(response['StartTime']);
+            PlayVideo();
+         
+         console.log("res: ",response['Resolution'],"speed:",speed);
+        },
+         error(){
+             console.log('Error');
+         }
+    });
+
+pauseflag=false;
+
+}
+
+</script>
+
+</body>
+</html>
